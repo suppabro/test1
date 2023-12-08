@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>PDF Mixer</title>
+</head>
+<body>
+  <h1>PDF Mixer</h1>
+  <form id="uploadForm" enctype="multipart/form-data">
+    <label for="pdfFile">Select PDF File:</label>
+    <input type="file" id="pdfFile" name="pdfFile" accept=".pdf" required>
+    <br>
+    <label for="jpgFile">Select JPG File:</label>
+    <input type="file" id="jpgFile" name="jpgFile" accept=".jpg, .jpeg" required>
+    <br>
+    <button type="button" onclick="mixAndDownload()">Mix and Download PDF</button>
+  </form>
+
+  <script>
+    async function mixAndDownload() {
+      const pdfFileInput = document.getElementById('pdfFile');
+      const jpgFileInput = document.getElementById('jpgFile');
+
+      if (!pdfFileInput.files[0] || !jpgFileInput.files[0]) {
+        alert('Please select both PDF and JPG files.');
+        return;
+      }
+
+      const formData = new FormData();
+      formData.append('pdfFile', pdfFileInput.files[0]);
+      formData.append('jpgFile', jpgFileInput.files[0]);
+
+      try {
+        const response = await fetch('/upload', {
+          method: 'POST',
+          body: formData,
+        });
+
+        if (response.ok) {
+          const blob = await response.blob();
+          const link = document.createElement('a');
+          link.href = URL.createObjectURL(blob);
+          link.download = 'output.pdf';
+          link.click();
+        } else {
+          alert('Error processing files. Please try again.');
+        }
+      } catch (error) {
+        console.error('An error occurred:', error);
+        alert('An error occurred. Please try again.');
+      }
+    }
+  </script>
+</body>
+</html>
