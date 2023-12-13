@@ -19,32 +19,32 @@
             const pdfFile = pdfInput.files[0];
             const imageFile = imageInput.files[0];
 
-            const pdfDoc = await PDFDocument.load(await pdfFile.arrayBuffer());
-            const imageBytes = await (new Response(imageFile)).arrayBuffer();
+            const pdfBytes = await pdfFile.arrayBuffer();
+            const imageBytes = await imageFile.arrayBuffer();
+
+            const pdfDoc = await PDFDocument.load(pdfBytes);
             const image = await pdfDoc.embedPng(imageBytes);
 
-            const page = pdfDoc.getPages()[0]; // Assuming you want to add the image to the first page
+            const page = pdfDoc.getPages()[0];
             const { width, height } = page.getSize();
 
-            // Calculate center position for the image
             const centerX = width / 2 - image.width / 2;
             const centerY = height / 2 - image.height / 2;
 
-            // Add the image to the center of the page
             page.drawImage(image, {
                 x: centerX,
                 y: centerY,
                 width: image.width,
                 height: image.height,
-                colorRgb: rgb(1, 1, 1), // Specify white color to avoid transparency issues
+                colorRgb: rgb(1, 1, 1),
             });
 
-            // Create a blob from the modified PDF
             const modifiedPdfBytes = await pdfDoc.save();
             const modifiedPdfBlob = new Blob([modifiedPdfBytes], { type: 'application/pdf' });
 
-            // Open the modified PDF in a new window for printing
             const modifiedPdfUrl = URL.createObjectURL(modifiedPdfBlob);
+
+            // Use window.open to ensure HTTPS is used for loading files on GitHub Pages
             const printWindow = window.open(modifiedPdfUrl, '_blank');
 
             // Print the PDF in the new window
