@@ -3,44 +3,58 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Image to PDF Integration</title>
+    <title>PDF Editor</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf-lib/1.17.0/pdf-lib.js"></script>
 </head>
 <body>
-    <h1>Image to PDF Integration</h1>
-    <p>Upload your image and PDF to automatically integrate the image into the PDF.</p>
+    <input type="file" id="pdfInput" accept=".pdf">
+    <input type="file" id="imageInput" accept="image/*">
 
-    <form action="/process" method="post" enctype="multipart/form-data">
-        <label for="image">Select Image:</label>
-        <input type="file" id="image" name="image" accept="image/*">
-        <br>
-        <label for="pdf">Select PDF:</label>
-        <input type="file" id="pdf" name="pdf" accept="application/pdf">
-        <br>
-        <button type="submit">Create PDF</button>
-    </form>
+    <button onclick="generatePDF()">Generate PDF</button>
 
     <script>
-        const form = document.querySelector('form');
-        form.addEventListener('submit', async (event) => {
-            event.preventDefault();
+        async function generatePDF() {
+            const pdfInput = document.getElementById('pdfInput');
+            const imageInput = document.getElementById('imageInput');
 
-            const formData = new FormData(form);
+            if (!pdfInput.files.length || !imageInput.files.length) {
+                alert('Please upload both PDF and image files.');
+                return;
+            }
 
-            // Send image and PDF data to server
-            const response = await fetch('/process', {
-                method: 'POST',
-                body: formData
+            const pdfFile = pdfInput.files[0];
+            const imageFile = imageInput.files[0];
+
+            const pdfDoc = await PDFLib.PDFDocument.load(await pdfFile.arrayBuffer());
+            const imageBytes = await (new Response(imageFile)).arrayBuffer();
+            const image = await pdfDoc.embedImage(imageBytes);
+
+            const page = pdfDoc.getPage(0); // Assuming you want to add the image to the first page
+            const { width, height } = page.getSize();
+
+            // Calculate center position for the image
+            const centerX = width / 2 - image.width / 2;
+            const centerY = height / 2 - image.height / 2;
+
+            // Add the image to the center of the page
+            page.drawImage(image, {
+                x: centerX,
+                y: centerY,
             });
 
-            // Get generated PDF data from response
-            const pdfData = await response.blob();
+            // Create a blob from the modified PDF
+            const modifiedPdfBytes = await pdfDoc.save();
+            const modifiedPdfBlob = new Blob([modifiedPdfBytes], { type: 'application/pdf' });
 
-            // Create a link to download the generated PDF
-            const pdfLink = document.createElement('a');
-            pdfLink.href = window.URL.createObjectURL(pdfData);
-            pdfLink.download = 'output.pdf';
-            pdfLink.click();
-        });
+            // Open the modified PDF in a new window for printing
+            const modifiedPdfUrl = URL.createObjectURL(modifiedPdfBlob);
+            const printWindow = window.open(modifiedPdfUrl, '_blank');
+
+            // Print the PDF in the new window
+            printWindow.onload = function () {
+                printWindow.print();
+            };
+        }
     </script>
 </body>
 </html>
