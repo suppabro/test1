@@ -1,56 +1,46 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>PDF Mixer</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Image to PDF Integration</title>
 </head>
 <body>
-  <h1>PDF Mixer</h1>
-  <form id="uploadForm" enctype="multipart/form-data">
-    <label for="pdfFile">Select PDF File:</label>
-    <input type="file" id="pdfFile" name="pdfFile" accept=".pdf" required>
-    <br>
-    <label for="jpgFile">Select JPG File:</label>
-    <input type="file" id="jpgFile" name="jpgFile" accept=".jpg, .jpeg" required>
-    <br>
-    <button type="button" onclick="mixAndDownload()">Mix and Download PDF</button>
-  </form>
+    <h1>Image to PDF Integration</h1>
+    <p>Upload your image and PDF to automatically integrate the image into the PDF.</p>
 
-  <script>
-    async function mixAndDownload() {
-      const pdfFileInput = document.getElementById('pdfFile');
-      const jpgFileInput = document.getElementById('jpgFile');
+    <form action="/process" method="post" enctype="multipart/form-data">
+        <label for="image">Select Image:</label>
+        <input type="file" id="image" name="image" accept="image/*">
+        <br>
+        <label for="pdf">Select PDF:</label>
+        <input type="file" id="pdf" name="pdf" accept="application/pdf">
+        <br>
+        <button type="submit">Create PDF</button>
+    </form>
 
-      if (!pdfFileInput.files[0] || !jpgFileInput.files[0]) {
-        alert('Please select both PDF and JPG files.');
-        return;
-      }
+    <script>
+        const form = document.querySelector('form');
+        form.addEventListener('submit', async (event) => {
+            event.preventDefault();
 
-      const formData = new FormData();
-      formData.append('pdfFile', pdfFileInput.files[0]);
-      formData.append('jpgFile', jpgFileInput.files[0]);
+            const formData = new FormData(form);
 
-      try {
-        const response = await fetch('/upload', {
-          method: 'POST',
-          body: formData,
+            // Send image and PDF data to server
+            const response = await fetch('/process', {
+                method: 'POST',
+                body: formData
+            });
+
+            // Get generated PDF data from response
+            const pdfData = await response.blob();
+
+            // Create a link to download the generated PDF
+            const pdfLink = document.createElement('a');
+            pdfLink.href = window.URL.createObjectURL(pdfData);
+            pdfLink.download = 'output.pdf';
+            pdfLink.click();
         });
-
-        if (response.ok) {
-          const blob = await response.blob();
-          const link = document.createElement('a');
-          link.href = URL.createObjectURL(blob);
-          link.download = 'output.pdf';
-          link.click();
-        } else {
-          alert('Error processing files. Please try again.');
-        }
-      } catch (error) {
-        console.error('An error occurred:', error);
-        alert('An error occurred. Please try again.');
-      }
-    }
-  </script>
+    </script>
 </body>
 </html>
