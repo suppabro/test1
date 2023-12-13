@@ -4,15 +4,9 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>PDF Editor</title>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf-lib/1.17.0/pdf-lib.js"></script>
-</head>
-<body>
-    <input type="file" id="pdfInput" accept=".pdf">
-    <input type="file" id="imageInput" accept="image/*">
+    <script type="module">
+        import { PDFDocument, rgb } from 'https://cdn.skypack.dev/pdf-lib@1.17.0';
 
-    <button onclick="generatePDF()">Generate PDF</button>
-
-    <script>
         async function generatePDF() {
             const pdfInput = document.getElementById('pdfInput');
             const imageInput = document.getElementById('imageInput');
@@ -25,11 +19,11 @@
             const pdfFile = pdfInput.files[0];
             const imageFile = imageInput.files[0];
 
-            const pdfDoc = await PDFLib.PDFDocument.load(await pdfFile.arrayBuffer());
+            const pdfDoc = await PDFDocument.load(await pdfFile.arrayBuffer());
             const imageBytes = await (new Response(imageFile)).arrayBuffer();
-            const image = await pdfDoc.embedImage(imageBytes);
+            const image = await pdfDoc.embedPng(imageBytes);
 
-            const page = pdfDoc.getPage(0); // Assuming you want to add the image to the first page
+            const page = pdfDoc.getPages()[0]; // Assuming you want to add the image to the first page
             const { width, height } = page.getSize();
 
             // Calculate center position for the image
@@ -40,6 +34,9 @@
             page.drawImage(image, {
                 x: centerX,
                 y: centerY,
+                width: image.width,
+                height: image.height,
+                colorRgb: rgb(1, 1, 1), // Specify white color to avoid transparency issues
             });
 
             // Create a blob from the modified PDF
@@ -56,5 +53,11 @@
             };
         }
     </script>
+</head>
+<body>
+    <input type="file" id="pdfInput" accept=".pdf">
+    <input type="file" id="imageInput" accept="image/*">
+
+    <button onclick="generatePDF()">Generate PDF</button>
 </body>
 </html>
