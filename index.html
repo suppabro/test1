@@ -3,61 +3,66 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>PDF Editor</title>
-    <script type="module">
-        import { PDFDocument, rgb } from 'https://cdn.skypack.dev/pdf-lib@1.17.0';
-
-        async function generatePDF() {
-            const pdfInput = document.getElementById('pdfInput');
-            const imageInput = document.getElementById('imageInput');
-
-            if (!pdfInput.files.length || !imageInput.files.length) {
-                alert('Please upload both PDF and image files.');
-                return;
-            }
-
-            const pdfFile = pdfInput.files[0];
-            const imageFile = imageInput.files[0];
-
-            const pdfBytes = await pdfFile.arrayBuffer();
-            const imageBytes = await imageFile.arrayBuffer();
-
-            const pdfDoc = await PDFDocument.load(pdfBytes);
-            const image = await pdfDoc.embedPng(imageBytes);
-
-            const page = pdfDoc.getPages()[0];
-            const { width, height } = page.getSize();
-
-            const centerX = width / 2 - image.width / 2;
-            const centerY = height / 2 - image.height / 2;
-
-            page.drawImage(image, {
-                x: centerX,
-                y: centerY,
-                width: image.width,
-                height: image.height,
-                colorRgb: rgb(1, 1, 1),
-            });
-
-            const modifiedPdfBytes = await pdfDoc.save();
-            const modifiedPdfBlob = new Blob([modifiedPdfBytes], { type: 'application/pdf' });
-
-            const modifiedPdfUrl = URL.createObjectURL(modifiedPdfBlob);
-
-            // Use window.open to ensure HTTPS is used for loading files on GitHub Pages
-            const printWindow = window.open(modifiedPdfUrl, '_blank');
-
-            // Print the PDF in the new window
-            printWindow.onload = function () {
-                printWindow.print();
-            };
+    <title>Fidget Spinner</title>
+    <style>
+        body {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            margin: 0;
+            background-color: #f0f0f0;
         }
-    </script>
+
+        #spinner {
+            width: 200px;
+            height: 200px;
+            border-radius: 50%;
+            position: relative;
+            animation: spin 3s linear infinite;
+            cursor: pointer;
+        }
+
+        .blade {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform-origin: 100% 50%;
+            width: 100px;
+            height: 10px;
+            background-color: #3498db;
+            border-radius: 5px;
+            animation: bladeSpin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        @keyframes bladeSpin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+    </style>
 </head>
 <body>
-    <input type="file" id="pdfInput" accept=".pdf">
-    <input type="file" id="imageInput" accept="image/*">
+    <div id="spinner" onclick="stopSpinner()">
+        <div class="blade"></div>
+        <div class="blade" style="transform: rotate(60deg);"></div>
+        <div class="blade" style="transform: rotate(120deg);"></div>
+        <div class="blade" style="transform: rotate(180deg);"></div>
+        <div class="blade" style="transform: rotate(240deg);"></div>
+        <div class="blade" style="transform: rotate(300deg);"></div>
+    </div>
 
-    <button onclick="generatePDF()">Generate PDF</button>
+    <script>
+        let spinning = true;
+
+        function stopSpinner() {
+            spinning = !spinning;
+            document.getElementById('spinner').style.animationPlayState = spinning ? 'running' : 'paused';
+        }
+    </script>
 </body>
 </html>
